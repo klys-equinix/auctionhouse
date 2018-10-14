@@ -1,0 +1,17 @@
+version: "3.5"
+services:
+  db:
+    image: postgres:10.5
+#    volumes:
+#      - storage_db:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=auctions
+      - POSTGRES_PASSWORD=auctions
+      - POSTGRES_DB=auctions
+      - PGPORT=5432
+    ports:
+      - "5432:5432"
+
+volumes:
+  storage_db:
+  storage_fs:

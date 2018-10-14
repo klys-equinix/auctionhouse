@@ -1,49 +1,44 @@
 package models
 
 import (
+	u "../utils"
 	"github.com/dgrijalva/jwt-go"
-	u "lens/utils"
-	"strings"
 	"github.com/jinzhu/gorm"
-	"os"
 	"golang.org/x/crypto/bcrypt"
+	"os"
+	"strings"
 )
 
-/*
-JWT claims struct
-*/
 type Token struct {
 	UserId uint
 	jwt.StandardClaims
 }
 
-//a struct to rep user account
 type Account struct {
 	gorm.Model
-	Email string `json:"email"`
+	Email    string `json:"email"`
 	Password string `json:"password"`
-	Token string `json:"token";sql:"-"`
+	Token    string `json:"token";sql:"-"`
 }
 
-//Validate incoming user details...
-func (account *Account) Validate() (map[string] interface{}, bool) {
+func (account *Account) Validate() (map[string]interface{}, bool) {
 
-	if !strings.Contains(account.Email, "@") {
+	if validateEmail(account.Email) {
 		return u.Message(false, "Email address is required"), false
 	}
 
-	if len(account.Password) < 6 {
-		return u.Message(false, "Password is required"), false
+	if validatePassword(account.Password) {
+		return u.Message(false, "Password is too short"), false
 	}
 
-	//Email must be unique
 	temp := &Account{}
 
-	//check for errors and duplicate emails
 	err := GetDB().Table("accounts").Where("email = ?", account.Email).First(temp).Error
-	if err != nil && err != gorm.ErrRecordNotFound {
+
+	if account.failedToGetRecord(err) {
 		return u.Message(false, "Connection error. Please retry"), false
 	}
+
 	if temp.Email != "" {
 		return u.Message(false, "Email address already in use by another user."), false
 	}
@@ -51,7 +46,7 @@ func (account *Account) Validate() (map[string] interface{}, bool) {
 	return u.Message(false, "Requirement passed"), true
 }
 
-func (account *Account) Create() (map[string] interface{}) {
+func (account *Account) Create() map[string]interface{} {
 
 	if resp, ok := account.Validate(); !ok {
 		return resp
@@ -66,23 +61,20 @@ func (account *Account) Create() (map[string] interface{}) {
 		return u.Message(false, "Failed to create account, connection error.")
 	}
 
-	//Create new JWT token for the newly registered account
-	tk := &Token{UserId: account.ID}
-	token := jwt.NewWithClaims(jwt.GetSigningMethod("HS256"), tk)
-	tokenString, _ := token.SignedString([]byte(os.Getenv("token_password")))
-	account.Token = tokenString
+	account.generateJwtToken()
 
-	account.Password = "" //delete password
+	account.Password = ""
 
 	response := u.Message(true, "Account has been created")
 	response["account"] = account
 	return response
 }
 
-func Login(email, password string) (map[string]interface{}) {
+func Login(email, password string) map[string]interface{} {
 
 	account := &Account{}
 	err := GetDB().Table("accounts").Where("email = ?", email).First(account).Error
+
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return u.Message(false, "Email address not found")
@@ -91,17 +83,14 @@ func Login(email, password string) (map[string]interface{}) {
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(account.Password), []byte(password))
-	if err != nil && err == bcrypt.ErrMismatchedHashAndPassword { //Password does not match!
+
+	if err != nil && err == bcrypt.ErrMismatchedHashAndPassword {
 		return u.Message(false, "Invalid login credentials. Please try again")
 	}
-	//Worked! Logged In
+
 	account.Password = ""
 
-	//Create JWT token
-	tk := &Token{UserId: account.ID}
-	token := jwt.NewWithClaims(jwt.GetSigningMethod("HS256"), tk)
-	tokenString, _ := token.SignedString([]byte(os.Getenv("token_password")))
-	account.Token = tokenString //Store the token in the response
+	account.generateJwtToken()
 
 	resp := u.Message(true, "Logged In")
 	resp["account"] = account
@@ -118,4 +107,23 @@ func GetUser(u uint) *Account {
 
 	acc.Password = ""
 	return acc
+}
+
+func (account *Account) generateJwtToken() {
+	tk := &Token{UserId: account.ID}
+	token := jwt.NewWithClaims(jwt.GetSigningMethod("HS256"), tk)
+	tokenString, _ := token.SignedString([]byte(os.Getenv("token_password")))
+	account.Token = tokenString
+}
+
+func (account *Account) failedToGetRecord(err error) bool {
+	return err != nil && err != gorm.ErrRecordNotFound
+}
+
+func validatePassword(password string) bool {
+	return len(password) < 6
+}
+
+func validateEmail(email string) bool {
+	return !strings.Contains(email, "@")
 }
