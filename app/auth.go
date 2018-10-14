@@ -14,7 +14,7 @@ import (
 var notAuthenticated = []string{"/api/user/new", "/api/user/login"}
 
 //WTF is this, some Szymon might ask. This function creates a middleware, which is registered to chain in main.go ->
-//it is similar to what FilterChains do in spring framework, but it dosc not feature the fucked up aspect precendece of Spring.
+//it is similar to what FilterChains do in spring framework, but it does not feature the fucked up aspect precedence of Spring.
 //Generally it handles the authentication and JWT token generation
 var JwtAuthentication = func(next http.Handler) http.Handler {
 
