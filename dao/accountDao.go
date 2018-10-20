@@ -1,12 +1,12 @@
-package models
+package dao
 
 import (
+	"../dto"
 	u "../utils"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/jinzhu/gorm"
 	"golang.org/x/crypto/bcrypt"
 	"os"
-	"strings"
 )
 
 type Token struct {
@@ -21,52 +21,40 @@ type Account struct {
 	Token    string `json:"token";sql:"-"`
 }
 
-func (account *Account) Validate() (map[string]interface{}, bool) {
-
-	if validateEmail(account.Email) {
-		return u.Message(false, "Email address is required"), false
-	}
-
-	if validatePassword(account.Password) {
-		return u.Message(false, "Password is too short"), false
-	}
-
+func (account *Account) ValidateUnique() (map[string]interface{}, bool) {
 	temp := &Account{}
 
 	err := GetDB().Table("accounts").Where("email = ?", account.Email).First(temp).Error
 
 	if account.failedToGetRecord(err) {
-		return u.Message(false, "Connection error. Please retry"), false
+		return u.Message(400, "Connection error. Please retry"), false
 	}
 
 	if temp.Email != "" {
-		return u.Message(false, "Email address already in use by another user."), false
+		return u.Message(400, "Email address already in use by another user."), false
 	}
 
-	return u.Message(false, "Requirement passed"), true
+	return u.Message(200, "Requirement passed"), true
 }
 
-func (account *Account) Create() map[string]interface{} {
+func Create(createAccountDto *dto.CreateAccountDto) map[string]interface{} {
+	account := NewAccount(createAccountDto)
 
-	if resp, ok := account.Validate(); !ok {
+	if resp, ok := account.ValidateUnique(); !ok {
 		return resp
 	}
-
-	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(account.Password), bcrypt.DefaultCost)
-	account.Password = string(hashedPassword)
 
 	GetDB().Create(account)
 
 	if account.ID <= 0 {
-		return u.Message(false, "Failed to create account, connection error.")
+		return u.Message(400, "Failed to create account, connection error.")
 	}
 
 	account.generateJwtToken()
 
-	account.Password = ""
-
-	response := u.Message(true, "Account has been created")
-	response["account"] = account
+	response := u.Message(201, "Account has been created")
+	accountDto := &dto.AccountDto{Email: account.Email, Token: account.Token}
+	response["account"] = accountDto
 	return response
 }
 
@@ -77,23 +65,23 @@ func Login(email, password string) map[string]interface{} {
 
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
-			return u.Message(false, "Email address not found")
+			return u.Message(400, "Email address not found")
 		}
-		return u.Message(false, "Connection error. Please retry")
+		return u.Message(400, "Connection error. Please retry")
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(account.Password), []byte(password))
 
 	if err != nil && err == bcrypt.ErrMismatchedHashAndPassword {
-		return u.Message(false, "Invalid login credentials. Please try again")
+		return u.Message(400, "Invalid login credentials. Please try again")
 	}
 
 	account.Password = ""
 
 	account.generateJwtToken()
 
-	resp := u.Message(true, "Logged In")
-	resp["account"] = account
+	resp := u.Message(400, "Logged In")
+	resp["account"] = &dto.AccountDto{Email: account.Email, Token: account.Token}
 	return resp
 }
 
@@ -120,10 +108,10 @@ func (account *Account) failedToGetRecord(err error) bool {
 	return err != nil && err != gorm.ErrRecordNotFound
 }
 
-func validatePassword(password string) bool {
-	return len(password) < 6
-}
-
-func validateEmail(email string) bool {
-	return !strings.Contains(email, "@")
+func NewAccount(accountDto *dto.CreateAccountDto) *Account {
+	account := &Account{}
+	account.Email = accountDto.Email
+	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(accountDto.Password), bcrypt.DefaultCost)
+	account.Password = string(hashedPassword)
+	return account
 }

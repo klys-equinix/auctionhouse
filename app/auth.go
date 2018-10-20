@@ -1,7 +1,7 @@
 package app
 
 import (
-	"../models"
+	"../dao"
 	u "../utils"
 	"context"
 	"fmt"
@@ -11,11 +11,8 @@ import (
 	"strings"
 )
 
-var notAuthenticated = []string{"/api/user/new", "/api/user/login"}
+var notAuthenticated = []string{"/user", "/user/login"}
 
-//WTF is this, some Szymon might ask. This function creates a middleware, which is registered to chain in main.go ->
-//it is similar to what FilterChains do in spring framework, but it does not feature the fucked up aspect precedence of Spring.
-//Generally it handles the authentication and JWT token generation
 var JwtAuthentication = func(next http.Handler) http.Handler {
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -46,7 +43,7 @@ var JwtAuthentication = func(next http.Handler) http.Handler {
 		}
 
 		tokenPart := tokenHeaderParts[1]
-		tk := &models.Token{}
+		tk := &dao.Token{}
 
 		token, err := jwt.ParseWithClaims(tokenPart, tk, func(token *jwt.Token) (interface{}, error) {
 			return []byte(os.Getenv("token_password")), nil
@@ -65,14 +62,14 @@ var JwtAuthentication = func(next http.Handler) http.Handler {
 }
 
 func respondInvalidToken(response *map[string]interface{}, w http.ResponseWriter) {
-	*response = u.Message(false, "Invalid/Malformed auth token. Is is in format Authorization Bearer {token}?")
+	*response = u.Message(401, "Invalid/Malformed auth token. Is is in format Authorization Bearer {token}?")
 	w.WriteHeader(http.StatusForbidden)
 	w.Header().Add("Content-Type", "application/json")
 	u.Respond(w, *response)
 }
 
 func respondTokenMissing(response *map[string]interface{}, w http.ResponseWriter) {
-	*response = u.Message(false, "Missing auth token")
+	*response = u.Message(401, "Missing auth token")
 	w.WriteHeader(http.StatusForbidden)
 	w.Header().Add("Content-Type", "application/json")
 	u.Respond(w, *response)

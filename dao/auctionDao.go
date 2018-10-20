@@ -1,4 +1,4 @@
-package models
+package dao
 
 import (
 	u "../utils"
@@ -11,24 +11,24 @@ type Auction struct {
 	Name        string `json:"name"`
 	Description string `json:"description"`
 	AskingPrice uint64 `json:"askingPrice"`
-	UserId      uint   `json:"user_id"` //The user that this auction belongs to
+	UserId      uint   `json:"user_id"`
 }
 
 func (auction *Auction) Validate() (map[string]interface{}, bool) {
 
 	if auction.Name == "" {
-		return u.Message(false, "Auction name should be on the payload"), false
+		return u.Message(400, "Auction name should be on the payload"), false
 	}
 
 	if auction.Description == "" {
-		return u.Message(false, "Description should be on the payload"), false
+		return u.Message(400, "Description should be on the payload"), false
 	}
 
 	if auction.UserId <= 0 {
-		return u.Message(false, "User is not recognized"), false
+		return u.Message(400, "User is not recognized"), false
 	}
 
-	return u.Message(true, "success"), true
+	return u.Message(200, "success"), true
 }
 
 func (auction *Auction) Create() map[string]interface{} {
@@ -39,7 +39,7 @@ func (auction *Auction) Create() map[string]interface{} {
 
 	GetDB().Create(auction)
 
-	resp := u.Message(true, "success")
+	resp := u.Message(201, "success")
 	resp["auction"] = auction
 	return resp
 }
