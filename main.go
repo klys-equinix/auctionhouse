@@ -16,6 +16,7 @@ func main() {
 	router.HandleFunc("/user", controllers.CreateAccount).Methods("POST")
 	router.HandleFunc("/user/login", controllers.Authenticate).Methods("POST")
 	router.HandleFunc("/auction", controllers.CreateAuction).Methods("POST")
+	router.HandleFunc("/auction/{auctionId:[0-9]+}/file", controllers.CreateAuctionFile).Methods("POST")
 	router.HandleFunc("/me/auction", controllers.GetAuctionsFor).Methods("GET") //  user/2/contacts
 
 	router.Use(app.JwtAuthentication) //attach JWT auth middleware

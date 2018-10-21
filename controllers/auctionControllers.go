@@ -9,7 +9,7 @@ import (
 
 var CreateAuction = func(w http.ResponseWriter, r *http.Request) {
 
-	user := r.Context().Value("user").(uint) //Grab the id of the user that send the request
+	userId := r.Context().Value("user").(uint)
 	auction := &dao.Auction{}
 
 	err := json.NewDecoder(r.Body).Decode(auction)
@@ -18,7 +18,7 @@ var CreateAuction = func(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auction.UserId = user
+	auction.AccountId = userId
 	resp := auction.Create()
 	u.Respond(w, resp)
 }

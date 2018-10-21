@@ -1,7 +1,7 @@
-package account
+package dto
 
 import (
-	u "../../utils"
+	u "../utils"
 	"strings"
 )
 

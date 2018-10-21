@@ -1,6 +1,6 @@
-package account
+package dto
 
 type AccountDto struct {
 	Email string `json:"email"`
-	Token string `json:"token";sql:"-"`
+	Token string `json:"token"`
 }

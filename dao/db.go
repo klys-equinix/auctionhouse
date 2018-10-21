@@ -31,7 +31,9 @@ func init() {
 	}
 
 	db = conn
-	db.Debug().AutoMigrate(&Account{}, &Auction{})
+	db.Model(&Auction{}).Related(&Account{})
+	db.Model(&AuctionFile{}).Related(&Auction{})
+	db.Debug().AutoMigrate(&Account{}, &Auction{}, &AuctionFile{})
 }
 
 func GetDB() *gorm.DB {

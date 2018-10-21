@@ -11,7 +11,7 @@ type Auction struct {
 	Name        string `json:"name"`
 	Description string `json:"description"`
 	AskingPrice uint64 `json:"askingPrice"`
-	UserId      uint   `json:"user_id"`
+	AccountId   uint   `gorm:"type:bigint REFERENCES accounts(id)"`
 }
 
 func (auction *Auction) Validate() (map[string]interface{}, bool) {
@@ -24,7 +24,7 @@ func (auction *Auction) Validate() (map[string]interface{}, bool) {
 		return u.Message(400, "Description should be on the payload"), false
 	}
 
-	if auction.UserId <= 0 {
+	if auction.AccountId == 0 {
 		return u.Message(400, "User is not recognized"), false
 	}
 
@@ -57,7 +57,7 @@ func GetAuction(id uint) *Auction {
 func GetAuctions(user uint) []*Auction {
 
 	auctions := make([]*Auction, 0)
-	err := GetDB().Table("auctions").Where("user_id = ?", user).Find(&auctions).Error
+	err := GetDB().Table("auctions").Where("account_id = ?", user).Find(&auctions).Error
 	if err != nil {
 		fmt.Println(err)
 		return nil
