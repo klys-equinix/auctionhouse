@@ -4,7 +4,9 @@ import (
 	"../dao"
 	u "../utils"
 	"encoding/json"
+	"github.com/gorilla/mux"
 	"net/http"
+	"strconv"
 )
 
 var CreateAuction = func(w http.ResponseWriter, r *http.Request) {
@@ -18,15 +20,32 @@ var CreateAuction = func(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auction.AccountId = userId
+	auction.AccountID = userId
 	resp := auction.Create()
 	u.Respond(w, resp)
 }
 
-var GetAuctionsFor = func(w http.ResponseWriter, r *http.Request) {
+var GetAuctionsForUser = func(w http.ResponseWriter, r *http.Request) {
 
 	id := r.Context().Value("user").(uint)
-	data := dao.GetAuctions(id)
+	data := dao.GetAuctionsForUser(id)
+	resp := u.Message(200, "success")
+	resp["data"] = data
+	u.Respond(w, resp)
+}
+
+var GetAllAuctions = func(w http.ResponseWriter, r *http.Request) {
+	data := dao.GetAllAuctions()
+	resp := u.Message(200, "success")
+	resp["data"] = data
+	u.Respond(w, resp)
+}
+
+var GetAuctionById = func(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	auctionId, _ := strconv.ParseUint(vars["id"], 10, 32)
+
+	data := dao.GetAuction(uint(auctionId))
 	resp := u.Message(200, "success")
 	resp["data"] = data
 	u.Respond(w, resp)

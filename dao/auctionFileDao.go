@@ -4,16 +4,15 @@ import (
 	u "../utils"
 	"bytes"
 	"fmt"
-	"github.com/jinzhu/gorm"
 	"log"
 	"os"
 )
 
 type AuctionFile struct {
-	gorm.Model
+	CommonModelFields
 	Name      string `json:"name"`
 	Extension string `json:"extension"`
-	AuctionId uint   `gorm:"type:bigint REFERENCES auctions(id)"`
+	AuctionID uint   `json:"auctionId"`
 }
 
 func (auctionFile *AuctionFile) Validate() (map[string]interface{}, bool) {
@@ -26,7 +25,7 @@ func (auctionFile *AuctionFile) Validate() (map[string]interface{}, bool) {
 		return u.Message(400, "Extension should be on the payload"), false
 	}
 
-	if auctionFile.AuctionId == 0 {
+	if auctionFile.AuctionID == 0 {
 		return u.Message(400, "AuctionId should be on the payload"), false
 	}
 
@@ -40,7 +39,10 @@ func (auctionFile *AuctionFile) Create(buf *bytes.Buffer) map[string]interface{}
 		return resp
 	}
 
-	tx.Create(auctionFile)
+	if err := tx.Create(auctionFile).Error; err != nil {
+		tx.Rollback()
+		return u.Message(500, err.Error())
+	}
 
 	success, err := auctionFile.SaveFile(buf)
 
@@ -85,18 +87,6 @@ func GetAuctionFile(id uint) *AuctionFile {
 		return nil
 	}
 	return auctionFile
-}
-
-func GetAuctionFilesForAuction(user uint) []*AuctionFile {
-
-	auctionFiles := make([]*AuctionFile, 0)
-	err := GetDB().Table("auction_files").Where("auction_id = ?", user).Find(&auctionFiles).Error
-	if err != nil {
-		fmt.Println(err)
-		return nil
-	}
-
-	return auctionFiles
 }
 
 func exists(path string) (bool, error) {

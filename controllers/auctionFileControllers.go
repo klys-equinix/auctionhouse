@@ -16,8 +16,8 @@ var CreateAuctionFile = func(w http.ResponseWriter, r *http.Request) {
 	buf, name, extension := readFile(r, buf)
 
 	vars := mux.Vars(r)
-	auctionId, _ := strconv.ParseUint(vars["auctionId"], 10, 32)
-	auctionFile := &dao.AuctionFile{Name: name, Extension: extension, AuctionId: uint(auctionId)}
+	auctionId, _ := strconv.ParseUint(vars["id"], 10, 32)
+	auctionFile := &dao.AuctionFile{Name: name, Extension: extension, AuctionID: uint(auctionId)}
 	resp := auctionFile.Create(buf)
 	buf.Reset()
 	u.Respond(w, resp)

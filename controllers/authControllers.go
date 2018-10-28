@@ -11,7 +11,7 @@ import (
 var CreateAccount = func(w http.ResponseWriter, r *http.Request) {
 
 	createAccountDto := &dto.CreateAccountDto{}
-	err := json.NewDecoder(r.Body).Decode(createAccountDto) //decode the request body into struct and failed if any error occur
+	err := json.NewDecoder(r.Body).Decode(createAccountDto)
 	if err != nil {
 		u.Respond(w, u.Message(400, "Invalid request"))
 		return
@@ -29,7 +29,7 @@ var CreateAccount = func(w http.ResponseWriter, r *http.Request) {
 var Authenticate = func(w http.ResponseWriter, r *http.Request) {
 
 	account := &dao.Account{}
-	err := json.NewDecoder(r.Body).Decode(account) //decode the request body into struct and failed if any error occur
+	err := json.NewDecoder(r.Body).Decode(account)
 	if err != nil {
 		u.Respond(w, u.Message(400, "Invalid request"))
 		return

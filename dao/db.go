@@ -31,9 +31,12 @@ func init() {
 	}
 
 	db = conn
-	db.Model(&Auction{}).Related(&Account{})
-	db.Model(&AuctionFile{}).Related(&Auction{})
-	db.Debug().AutoMigrate(&Account{}, &Auction{}, &AuctionFile{})
+	db.Model(&Account{}).Related(&Auction{})
+	db.Model(&Auction{}).Related(&AuctionFile{})
+	db.AutoMigrate(&Account{}, &Auction{}, &AuctionFile{})
+	db.Model(&Auction{}).AddForeignKey("account_id", "accounts(id)", "CASCADE", "CASCADE")
+	db.Model(&AuctionFile{}).AddForeignKey("auction_id", "auctions(id)", "CASCADE", "CASCADE")
+
 }
 
 func GetDB() *gorm.DB {

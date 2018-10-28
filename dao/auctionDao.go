@@ -2,16 +2,16 @@ package dao
 
 import (
 	u "../utils"
-	"fmt"
-	"github.com/jinzhu/gorm"
+	"log"
 )
 
 type Auction struct {
-	gorm.Model
-	Name        string `json:"name"`
-	Description string `json:"description"`
-	AskingPrice uint64 `json:"askingPrice"`
-	AccountId   uint   `gorm:"type:bigint REFERENCES accounts(id)"`
+	CommonModelFields
+	Name         string        `json:"name"`
+	Description  string        `json:"description"`
+	AskingPrice  uint64        `json:"askingPrice"`
+	AccountID    uint          `json:"accountId"`
+	AuctionFiles []AuctionFile `json:"auctionFiles"`
 }
 
 func (auction *Auction) Validate() (map[string]interface{}, bool) {
@@ -24,7 +24,7 @@ func (auction *Auction) Validate() (map[string]interface{}, bool) {
 		return u.Message(400, "Description should be on the payload"), false
 	}
 
-	if auction.AccountId == 0 {
+	if auction.AccountID == 0 {
 		return u.Message(400, "User is not recognized"), false
 	}
 
@@ -47,19 +47,33 @@ func (auction *Auction) Create() map[string]interface{} {
 func GetAuction(id uint) *Auction {
 
 	auction := &Auction{}
-	err := GetDB().Table("auctions").Where("id = ?", id).First(auction).Error
+	err := GetDB().Table("auctions").Preload("AuctionFiles").Where("id = ?", id).First(auction).Error
 	if err != nil {
 		return nil
 	}
 	return auction
 }
 
-func GetAuctions(user uint) []*Auction {
+func GetAuctionsForUser(user uint) []*Auction {
 
 	auctions := make([]*Auction, 0)
-	err := GetDB().Table("auctions").Where("account_id = ?", user).Find(&auctions).Error
+	err := GetDB().Table("auctions").Preload("AuctionFiles").Where("account_id = ?", user).Find(&auctions).Error
+
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
+		return nil
+	}
+
+	return auctions
+}
+
+func GetAllAuctions() []*Auction {
+
+	auctions := make([]*Auction, 0)
+	err := GetDB().Table("auctions").Preload("AuctionFiles").Find(&auctions).Error
+
+	if err != nil {
+		log.Println(err)
 		return nil
 	}
 
