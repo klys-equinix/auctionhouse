@@ -5,8 +5,8 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/jinzhu/gorm"
+	"log"
 	"os"
-	"strconv"
 )
 
 type AuctionFile struct {
@@ -41,11 +41,12 @@ func (auctionFile *AuctionFile) Create(buf *bytes.Buffer) map[string]interface{}
 	}
 
 	tx.Create(auctionFile)
+
 	success, err := auctionFile.SaveFile(buf)
+
 	if !success {
 		tx.Rollback()
-		resp := u.Message(500, err.Error())
-		return resp
+		return u.Message(500, err.Error())
 	}
 
 	tx.Commit()
@@ -56,17 +57,24 @@ func (auctionFile *AuctionFile) Create(buf *bytes.Buffer) map[string]interface{}
 }
 
 func (auctionFile *AuctionFile) SaveFile(buf *bytes.Buffer) (bool, error) {
-	filePath := strconv.Itoa(int(auctionFile.ID)) + "." + auctionFile.Extension
+	createStorageDirectoryIfNotExists()
+
+	filePath := fmt.Sprintf("%s/%d.%s", os.Getenv("storage_path"), int(auctionFile.ID), auctionFile.Extension)
+
 	if exists, err := exists(filePath); exists {
 		return false, err
 	}
+
 	f, err := os.Create(filePath)
+
+	if err != nil {
+		log.Panicf("Cannot create file %s", err)
+	}
+
 	defer f.Close()
 	_, err = f.Write(buf.Bytes())
-	if err != nil {
-		return false, err
-	}
-	return true, err
+
+	return err == nil, err
 }
 
 func GetAuctionFile(id uint) *AuctionFile {
@@ -100,4 +108,14 @@ func exists(path string) (bool, error) {
 		return false, nil
 	}
 	return true, err
+}
+
+func createStorageDirectoryIfNotExists() {
+	storagePath := os.Getenv("storage_path")
+	if exists, err := exists(storagePath); !exists {
+		err = os.MkdirAll(storagePath, 0755)
+		if err != nil {
+			panic(err)
+		}
+	}
 }
