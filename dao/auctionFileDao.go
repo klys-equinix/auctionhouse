@@ -1,9 +1,9 @@
 package dao
 
 import (
-	u "../utils"
 	"bytes"
 	"fmt"
+	u "golang-poc/utils"
 	"log"
 	"os"
 )

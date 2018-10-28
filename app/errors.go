@@ -1,7 +1,7 @@
 package app
 
 import (
-	u "../utils"
+	u "golang-poc/utils"
 	"net/http"
 )
 

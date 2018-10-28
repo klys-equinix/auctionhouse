@@ -1,11 +1,11 @@
 package controllers
 
 import (
-	"../dao"
-	u "../utils"
 	"bytes"
 	"fmt"
 	"github.com/gorilla/mux"
+	"golang-poc/dao"
+	u "golang-poc/utils"
 	"io"
 	"net/http"
 	"strconv"

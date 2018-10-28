@@ -1,0 +1,208 @@
+{
+	"info": {
+		"_postman_id": "c583ab11-0c9a-42d4-a0b9-ee2c89099e7a",
+		"name": "auction_house",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Create user",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "32ff6673-f83c-414d-99cf-5702cdfbecbd",
+						"type": "text/javascript",
+						"exec": [
+							"var data = JSON.parse(responseBody)",
+							"pm.environment.set(\"token\", data.account.token)"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"email\": \"konrad.lys1997@gmail.com\",\n\t\"password\": \"1234567\"\n}"
+				},
+				"url": {
+					"raw": "{{api_address}}/user",
+					"host": [
+						"{{api_address}}"
+					],
+					"path": [
+						"user"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Login",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "32ff6673-f83c-414d-99cf-5702cdfbecbd",
+						"type": "text/javascript",
+						"exec": [
+							"var data = JSON.parse(responseBody)",
+							"pm.environment.set(\"token\", data.account.token)"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"email\": \"konrad.lys1997@gmail.com\",\n\t\"password\": \"1234567\"\n}"
+				},
+				"url": {
+					"raw": "{{api_address}}/user/login",
+					"host": [
+						"{{api_address}}"
+					],
+					"path": [
+						"user",
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create auction",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{token}}"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"name\": \"some_auction\",\n\t\"askingPrice\": 1,\n\t\"description\": \"some_desc\"\n}"
+				},
+				"url": {
+					"raw": "{{api_address}}/auction",
+					"host": [
+						"{{api_address}}"
+					],
+					"path": [
+						"auction"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create auction file",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{token}}"
+					}
+				],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "file",
+							"description": "",
+							"type": "file"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{api_address}}/auction/1/file",
+					"host": [
+						"{{api_address}}"
+					],
+					"path": [
+						"auction",
+						"1",
+						"file"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get all auctions",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{token}}"
+					}
+				],
+				"body": {},
+				"url": {
+					"raw": "{{api_address}}/auction",
+					"host": [
+						"{{api_address}}"
+					],
+					"path": [
+						"auction"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get auction files",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{token}}",
+						"disabled": true
+					}
+				],
+				"body": {},
+				"url": {
+					"raw": "{{api_address}}/auction/1/file/1?bearer={{token}}",
+					"host": [
+						"{{api_address}}"
+					],
+					"path": [
+						"auction",
+						"1",
+						"file",
+						"1"
+					],
+					"query": [
+						{
+							"key": "bearer",
+							"value": "{{token}}"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

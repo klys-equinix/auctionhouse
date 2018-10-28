@@ -1,10 +1,10 @@
 package controllers
 
 import (
-	"../dao"
-	"../dto"
-	u "../utils"
 	"encoding/json"
+	"golang-poc/dao"
+	"golang-poc/dto"
+	u "golang-poc/utils"
 	"net/http"
 )
 

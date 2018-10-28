@@ -1,7 +1,7 @@
 package dto
 
 import (
-	u "../utils"
+	u "golang-poc/utils"
 	"strings"
 )
 

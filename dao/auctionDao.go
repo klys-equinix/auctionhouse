@@ -1,7 +1,7 @@
 package dao
 
 import (
-	u "../utils"
+	u "golang-poc/utils"
 	"log"
 )
 

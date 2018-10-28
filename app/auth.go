@@ -1,10 +1,10 @@
 package app
 
 import (
-	"../dao"
-	u "../utils"
 	"context"
 	"github.com/dgrijalva/jwt-go"
+	"golang-poc/dao"
+	u "golang-poc/utils"
 	"net/http"
 	"os"
 	"strings"

@@ -1,10 +1,10 @@
 package main
 
 import (
-	"./app"
-	"./controllers"
 	"fmt"
 	"github.com/gorilla/mux"
+	"golang-poc/app"
+	"golang-poc/controllers"
 	"net/http"
 	"os"
 )

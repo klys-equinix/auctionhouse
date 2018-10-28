@@ -1,10 +1,10 @@
 package dao
 
 import (
-	"../dto"
-	u "../utils"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/jinzhu/gorm"
+	"golang-poc/dto"
+	u "golang-poc/utils"
 	"golang.org/x/crypto/bcrypt"
 	"os"
 )
