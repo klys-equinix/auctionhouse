@@ -29,22 +29,29 @@ var JwtAuthentication = func(next http.Handler) http.Handler {
 
 		tokenHeader := r.Header.Get("Authorization")
 
-		if tokenHeader == "" {
+		tokenString := ""
+
+		bearerPathVar := strings.Split(r.URL.RawQuery, "=")
+
+		if tokenHeader != "" {
+			tokenHeaderParts := strings.Split(tokenHeader, " ")
+
+			if len(tokenHeaderParts) != 2 {
+				respondInvalidToken(&response, w)
+				return
+			}
+
+			tokenString = tokenHeaderParts[1]
+		} else if len(bearerPathVar) != 0 {
+			tokenString = bearerPathVar[1]
+		} else {
 			respondTokenMissing(&response, w)
 			return
 		}
 
-		tokenHeaderParts := strings.Split(tokenHeader, " ")
-
-		if len(tokenHeaderParts) != 2 {
-			respondInvalidToken(&response, w)
-			return
-		}
-
-		tokenPart := tokenHeaderParts[1]
 		tk := &dao.Token{}
 
-		token, err := jwt.ParseWithClaims(tokenPart, tk, func(token *jwt.Token) (interface{}, error) {
+		token, err := jwt.ParseWithClaims(tokenString, tk, func(token *jwt.Token) (interface{}, error) {
 			return []byte(os.Getenv("token_password")), nil
 		})
 

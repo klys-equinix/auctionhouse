@@ -58,12 +58,27 @@ func (auctionFile *AuctionFile) Create(buf *bytes.Buffer) map[string]interface{}
 	return resp
 }
 
+func GetAuctionFile(id uint) (*os.File, *AuctionFile) {
+
+	auctionFile := &AuctionFile{}
+	err := GetDB().Table("auction_files").Where("id = ?", id).First(auctionFile).Error
+	if err != nil {
+		return nil, nil
+	}
+
+	filePath := auctionFile.buildFilePath()
+
+	f, err := os.Open(filePath)
+
+	return f, auctionFile
+}
+
 func (auctionFile *AuctionFile) SaveFile(buf *bytes.Buffer) (bool, error) {
-	createStorageDirectoryIfNotExists()
+	u.CreateStorageDirectoryIfNotExists()
 
-	filePath := fmt.Sprintf("%s/%d.%s", os.Getenv("storage_path"), int(auctionFile.ID), auctionFile.Extension)
+	filePath := auctionFile.buildFilePath()
 
-	if exists, err := exists(filePath); exists {
+	if exists, err := u.FileExists(filePath); exists {
 		return false, err
 	}
 
@@ -79,33 +94,6 @@ func (auctionFile *AuctionFile) SaveFile(buf *bytes.Buffer) (bool, error) {
 	return err == nil, err
 }
 
-func GetAuctionFile(id uint) *AuctionFile {
-
-	auctionFile := &AuctionFile{}
-	err := GetDB().Table("auction_files").Where("id = ?", id).First(auctionFile).Error
-	if err != nil {
-		return nil
-	}
-	return auctionFile
-}
-
-func exists(path string) (bool, error) {
-	_, err := os.Stat(path)
-	if err == nil {
-		return true, nil
-	}
-	if os.IsNotExist(err) {
-		return false, nil
-	}
-	return true, err
-}
-
-func createStorageDirectoryIfNotExists() {
-	storagePath := os.Getenv("storage_path")
-	if exists, err := exists(storagePath); !exists {
-		err = os.MkdirAll(storagePath, 0755)
-		if err != nil {
-			panic(err)
-		}
-	}
+func (auctionFile *AuctionFile) buildFilePath() string {
+	return fmt.Sprintf("%s/%d.%s", os.Getenv("storage_path"), int(auctionFile.ID), auctionFile.Extension)
 }

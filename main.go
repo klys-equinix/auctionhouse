@@ -22,6 +22,7 @@ func main() {
 	router.HandleFunc("/me/auction", controllers.GetAuctionsForUser).Methods("GET")
 
 	router.HandleFunc("/auction/{id:[0-9]+}/file", controllers.CreateAuctionFile).Methods("POST")
+	router.HandleFunc("/auction/{id:[0-9]+}/file/{fileId:[0-9]+}", controllers.GetAuctionFileById).Methods("GET")
 
 	router.Use(app.JwtAuthentication) //attach JWT auth middleware
 

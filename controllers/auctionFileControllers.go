@@ -4,6 +4,7 @@ import (
 	"../dao"
 	u "../utils"
 	"bytes"
+	"fmt"
 	"github.com/gorilla/mux"
 	"io"
 	"net/http"
@@ -21,6 +22,17 @@ var CreateAuctionFile = func(w http.ResponseWriter, r *http.Request) {
 	resp := auctionFile.Create(buf)
 	buf.Reset()
 	u.Respond(w, resp)
+}
+
+var GetAuctionFileById = func(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	auctionFileId, _ := strconv.ParseUint(vars["fileId"], 10, 32)
+
+	data, auctionFile := dao.GetAuctionFile(uint(auctionFileId))
+
+	fileName := fmt.Sprintf("%s.%s", auctionFile.Name, auctionFile.Extension)
+
+	u.RespondWithFile(w, data, fileName)
 }
 
 func readFile(r *http.Request, buf *bytes.Buffer) (*bytes.Buffer, string, string) {
