@@ -17,9 +17,8 @@ func main() {
 	router.HandleFunc("/user/login", controllers.Authenticate).Methods("POST")
 
 	router.HandleFunc("/auction", controllers.CreateAuction).Methods("POST")
-	router.HandleFunc("/auction", controllers.GetAllAuctions).Methods("GET")
 	router.HandleFunc("/auction/{id:[0-9]+}", controllers.GetAuctionById).Methods("GET")
-	router.HandleFunc("/me/auction", controllers.GetAuctionsForUser).Methods("GET")
+	router.HandleFunc("/auction", controllers.GetAllAuctions).Methods("GET")
 
 	router.HandleFunc("/auction/{id:[0-9]+}/file", controllers.CreateAuctionFile).Methods("POST")
 	router.HandleFunc("/auction/{id:[0-9]+}/file/{fileId:[0-9]+}", controllers.GetAuctionFileById).Methods("GET")

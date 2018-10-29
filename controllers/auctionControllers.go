@@ -25,17 +25,12 @@ var CreateAuction = func(w http.ResponseWriter, r *http.Request) {
 	u.Respond(w, resp)
 }
 
-var GetAuctionsForUser = func(w http.ResponseWriter, r *http.Request) {
-
-	id := r.Context().Value("user").(uint)
-	data := dao.GetAuctionsForUser(id)
-	resp := u.Message(200, "success")
-	resp["data"] = data
-	u.Respond(w, resp)
-}
-
 var GetAllAuctions = func(w http.ResponseWriter, r *http.Request) {
-	data := dao.GetAllAuctions()
+	v := r.URL.Query()
+	accountId, _ := strconv.ParseUint(v.Get("accountId"), 10, 32)
+
+	data := dao.GetAllAuctions(accountId, v.Get("name"))
+
 	resp := u.Message(200, "success")
 	resp["data"] = data
 	u.Respond(w, resp)
