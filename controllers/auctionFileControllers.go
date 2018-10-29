@@ -19,9 +19,21 @@ var CreateAuctionFile = func(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	auctionId, _ := strconv.ParseUint(vars["id"], 10, 32)
 	auctionFile := &dao.AuctionFile{Name: name, Extension: extension, AuctionID: uint(auctionId)}
-	resp := auctionFile.Create(buf)
+
+	if resp, ok := auctionFile.Validate(); !ok {
+		u.RespondWithMessage(w, resp)
+	}
+
+	created, err := auctionFile.Create(buf)
+
+	if err != nil {
+		u.RespondWithError(w, u.Message(500, err.Error()), http.StatusInternalServerError)
+		return
+	}
+
 	buf.Reset()
-	u.Respond(w, resp)
+
+	u.Respond(w, created)
 }
 
 var GetAuctionFileById = func(w http.ResponseWriter, r *http.Request) {

@@ -70,12 +70,12 @@ func respondInvalidToken(response *map[string]interface{}, w http.ResponseWriter
 	*response = u.Message(401, "Invalid/Malformed auth token. Is is in format Authorization Bearer {token}?")
 	w.WriteHeader(http.StatusForbidden)
 	w.Header().Add("Content-Type", "application/json")
-	u.Respond(w, *response)
+	u.RespondWithMessage(w, *response)
 }
 
 func respondTokenMissing(response *map[string]interface{}, w http.ResponseWriter) {
 	*response = u.Message(401, "Missing auth token")
 	w.WriteHeader(http.StatusForbidden)
 	w.Header().Add("Content-Type", "application/json")
-	u.Respond(w, *response)
+	u.RespondWithMessage(w, *response)
 }

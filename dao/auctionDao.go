@@ -32,17 +32,11 @@ func (auction *Auction) Validate() (map[string]interface{}, bool) {
 	return u.Message(200, "success"), true
 }
 
-func (auction *Auction) Create() map[string]interface{} {
-
-	if resp, ok := auction.Validate(); !ok {
-		return resp
-	}
+func (auction *Auction) Create() *Auction {
 
 	GetDB().Create(auction)
 
-	resp := u.Message(201, "success")
-	resp["auction"] = auction
-	return resp
+	return auction
 }
 
 func GetAuction(id uint) *Auction {

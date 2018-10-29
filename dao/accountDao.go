@@ -1,6 +1,7 @@
 package dao
 
 import (
+	"errors"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/jinzhu/gorm"
 	"golang-poc/dto"
@@ -21,41 +22,35 @@ type Account struct {
 	Token    string `json:"token";sql:"-"`
 }
 
-func (account *Account) ValidateUnique() (map[string]interface{}, bool) {
+func (account *Account) ValidateUnique() (string, bool) {
 	temp := &Account{}
 
 	err := GetDB().Table("accounts").Where("email = ?", account.Email).First(temp).Error
 
 	if account.failedToGetRecord(err) {
-		return u.Message(400, "Connection error. Please retry"), false
+		return "Connection error. Please retry", false
 	}
 
 	if temp.Email != "" {
-		return u.Message(400, "Email address already in use by another user."), false
+		return "Email address already in use by another user.", false
 	}
 
-	return u.Message(200, "Requirement passed"), true
+	return "Requirement passed", true
 }
 
-func Create(createAccountDto *dto.CreateAccountDto) map[string]interface{} {
+func Create(createAccountDto *dto.CreateAccountDto) (*dto.AccountDto, error) {
 	account := NewAccount(createAccountDto)
 
 	if resp, ok := account.ValidateUnique(); !ok {
-		return resp
+		return nil, errors.New(resp)
 	}
 
 	GetDB().Create(account)
 
-	if account.ID <= 0 {
-		return u.Message(400, "Failed to create account, connection error.")
-	}
-
 	account.generateJwtToken()
 
-	response := u.Message(201, "Account has been created")
 	accountDto := &dto.AccountDto{Email: account.Email, Token: account.Token}
-	response["account"] = accountDto
-	return response
+	return accountDto, nil
 }
 
 func Login(email, password string) map[string]interface{} {

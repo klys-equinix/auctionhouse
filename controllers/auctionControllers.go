@@ -15,14 +15,19 @@ var CreateAuction = func(w http.ResponseWriter, r *http.Request) {
 	auction := &dao.Auction{}
 
 	err := json.NewDecoder(r.Body).Decode(auction)
+
 	if err != nil {
-		u.Respond(w, u.Message(400, "Error while decoding request body"))
+		u.RespondWithError(w, u.Message(400, "Error while decoding request body"), http.StatusBadRequest)
 		return
 	}
 
 	auction.AccountID = userId
-	resp := auction.Create()
-	u.Respond(w, resp)
+
+	if resp, ok := auction.Validate(); !ok {
+		u.RespondWithMessage(w, resp)
+	}
+
+	u.Respond(w, auction.Create())
 }
 
 var GetAllAuctions = func(w http.ResponseWriter, r *http.Request) {
@@ -31,9 +36,7 @@ var GetAllAuctions = func(w http.ResponseWriter, r *http.Request) {
 
 	data := dao.GetAllAuctions(accountId, v.Get("name"))
 
-	resp := u.Message(200, "success")
-	resp["data"] = data
-	u.Respond(w, resp)
+	u.Respond(w, data)
 }
 
 var GetAuctionById = func(w http.ResponseWriter, r *http.Request) {
@@ -41,7 +44,6 @@ var GetAuctionById = func(w http.ResponseWriter, r *http.Request) {
 	auctionId, _ := strconv.ParseUint(vars["id"], 10, 32)
 
 	data := dao.GetAuction(uint(auctionId))
-	resp := u.Message(200, "success")
-	resp["data"] = data
-	u.Respond(w, resp)
+
+	u.Respond(w, data)
 }

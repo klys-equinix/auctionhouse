@@ -32,30 +32,24 @@ func (auctionFile *AuctionFile) Validate() (map[string]interface{}, bool) {
 	return u.Message(200, "success"), true
 }
 
-func (auctionFile *AuctionFile) Create(buf *bytes.Buffer) map[string]interface{} {
+func (auctionFile *AuctionFile) Create(buf *bytes.Buffer) (*AuctionFile, error) {
 	tx := GetDB().Begin()
-
-	if resp, ok := auctionFile.Validate(); !ok {
-		return resp
-	}
 
 	if err := tx.Create(auctionFile).Error; err != nil {
 		tx.Rollback()
-		return u.Message(500, err.Error())
+		return nil, err
 	}
 
 	success, err := auctionFile.SaveFile(buf)
 
 	if !success {
 		tx.Rollback()
-		return u.Message(500, err.Error())
+		return nil, err
 	}
 
 	tx.Commit()
 
-	resp := u.Message(201, "success")
-	resp["auctionFile"] = auctionFile
-	return resp
+	return auctionFile, nil
 }
 
 func GetAuctionFile(id uint) (*os.File, *AuctionFile) {

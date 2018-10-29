@@ -11,11 +11,11 @@
 				{
 					"listen": "test",
 					"script": {
-						"id": "32ff6673-f83c-414d-99cf-5702cdfbecbd",
+						"id": "8e584f89-25e3-4e97-af5f-fb9cf8524796",
 						"type": "text/javascript",
 						"exec": [
 							"var data = JSON.parse(responseBody)",
-							"pm.environment.set(\"token\", data.account.token)"
+							"pm.environment.set(\"token\", data.token)"
 						]
 					}
 				}
@@ -50,11 +50,11 @@
 				{
 					"listen": "test",
 					"script": {
-						"id": "32ff6673-f83c-414d-99cf-5702cdfbecbd",
+						"id": "9bbea694-a8d2-4c29-9603-9e5037dbdcea",
 						"type": "text/javascript",
 						"exec": [
 							"var data = JSON.parse(responseBody)",
-							"pm.environment.set(\"token\", data.account.token)"
+							"pm.environment.set(\"token\", data.token)"
 						]
 					}
 				}
@@ -100,7 +100,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n\t\"name\": \"some_auction\",\n\t\"askingPrice\": 1,\n\t\"description\": \"some_desc\"\n}"
+					"raw": "{\n\t\"name\": \"some_other_auction\",\n\t\"askingPrice\": 0,\n\t\"description\": \"some_desc\"\n}"
 				},
 				"url": {
 					"raw": "{{api_address}}/auction",
@@ -160,12 +160,22 @@
 				],
 				"body": {},
 				"url": {
-					"raw": "{{api_address}}/auction",
+					"raw": "{{api_address}}/auction?accountId=1&name=some",
 					"host": [
 						"{{api_address}}"
 					],
 					"path": [
 						"auction"
+					],
+					"query": [
+						{
+							"key": "accountId",
+							"value": "1"
+						},
+						{
+							"key": "name",
+							"value": "some"
+						}
 					]
 				}
 			},
