@@ -2,6 +2,7 @@ package utils
 
 import (
 	"encoding/json"
+	"github.com/gorilla/mux"
 	"io"
 	"net/http"
 	"os"
@@ -65,4 +66,8 @@ func GetFileContentType(out *os.File) (string, error) {
 	contentType := http.DetectContentType(buffer)
 
 	return contentType, nil
+}
+
+func GetPathVar(name string, r *http.Request) (value string) {
+	return mux.Vars(r)[name]
 }

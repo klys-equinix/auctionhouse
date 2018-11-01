@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"encoding/json"
-	"github.com/gorilla/mux"
 	"golang-poc/dao"
 	u "golang-poc/utils"
 	"net/http"
@@ -41,8 +40,7 @@ var GetAllAuctions = func(w http.ResponseWriter, r *http.Request) {
 }
 
 var GetAuctionById = func(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	auctionId, _ := strconv.ParseUint(vars["id"], 10, 32)
+	auctionId, _ := strconv.ParseUint(u.GetPathVar("id", r), 10, 32)
 
 	data := dao.GetAuction(uint(auctionId))
 

@@ -3,7 +3,6 @@ package controllers
 import (
 	"bytes"
 	"fmt"
-	"github.com/gorilla/mux"
 	"golang-poc/dao"
 	u "golang-poc/utils"
 	"io"
@@ -13,11 +12,9 @@ import (
 )
 
 var CreateAuctionFile = func(w http.ResponseWriter, r *http.Request) {
-	buf := &bytes.Buffer{}
-	buf, name, extension := readFile(r, buf)
+	buf, name, extension := readFile(r)
 
-	vars := mux.Vars(r)
-	auctionId, _ := strconv.ParseUint(vars["id"], 10, 32)
+	auctionId, _ := strconv.ParseUint(u.GetPathVar("id", r), 10, 32)
 	auctionFile := &dao.AuctionFile{Name: name, Extension: extension, AuctionID: uint(auctionId)}
 
 	if resp, ok := auctionFile.Validate(); !ok {
@@ -38,8 +35,7 @@ var CreateAuctionFile = func(w http.ResponseWriter, r *http.Request) {
 }
 
 var GetAuctionFileById = func(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	auctionFileId, _ := strconv.ParseUint(vars["fileId"], 10, 32)
+	auctionFileId, _ := strconv.ParseUint(u.GetPathVar("fileId", r), 10, 32)
 
 	data, auctionFile := dao.GetAuctionFile(uint(auctionFileId))
 
@@ -48,7 +44,8 @@ var GetAuctionFileById = func(w http.ResponseWriter, r *http.Request) {
 	u.RespondWithFile(w, data, fileName)
 }
 
-func readFile(r *http.Request, buf *bytes.Buffer) (*bytes.Buffer, string, string) {
+func readFile(r *http.Request) (*bytes.Buffer, string, string) {
+	buf := &bytes.Buffer{}
 	file, header, err := r.FormFile("file")
 	if err != nil {
 		panic(err)
