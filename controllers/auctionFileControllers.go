@@ -22,12 +22,13 @@ var CreateAuctionFile = func(w http.ResponseWriter, r *http.Request) {
 
 	if resp, ok := auctionFile.Validate(); !ok {
 		u.RespondWithMessage(w, resp)
+		return
 	}
 
 	created, err := auctionFile.Create(buf)
 
 	if err != nil {
-		u.RespondWithError(w, u.Message(500, err.Error()), http.StatusInternalServerError)
+		u.RespondWithError(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 

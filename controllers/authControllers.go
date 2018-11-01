@@ -12,8 +12,9 @@ var CreateAccount = func(w http.ResponseWriter, r *http.Request) {
 
 	createAccountDto := &dto.CreateAccountDto{}
 	err := json.NewDecoder(r.Body).Decode(createAccountDto)
+
 	if err != nil {
-		u.RespondWithError(w, u.Message(400, "Invalid request"), http.StatusBadRequest)
+		u.RespondWithError(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -25,21 +26,29 @@ var CreateAccount = func(w http.ResponseWriter, r *http.Request) {
 	resp, err := dao.Create(createAccountDto)
 
 	if err != nil {
-		u.RespondWithError(w, u.Message(400, err.Error()), http.StatusBadRequest)
+		u.RespondWithError(w, err.Error(), http.StatusBadRequest)
+		return
 	}
 
-	u.Respond(w, resp)
+	u.Respond(w, &dto.AccountDto{Email: resp.Email, Token: resp.Token})
 }
 
 var Authenticate = func(w http.ResponseWriter, r *http.Request) {
 
 	account := &dao.Account{}
 	err := json.NewDecoder(r.Body).Decode(account)
+
 	if err != nil {
-		u.RespondWithError(w, u.Message(400, "Invalid request"), http.StatusBadRequest)
+		u.RespondWithError(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	resp := dao.Login(account.Email, account.Password)
-	u.RespondWithMessage(w, resp)
+	resp, err := dao.Login(account.Email, account.Password)
+
+	if err != nil {
+		u.RespondWithError(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	u.Respond(w, &dto.AccountDto{Email: resp.Email, Token: resp.Token})
 }

@@ -14,6 +14,7 @@ func main() {
 	router := mux.NewRouter()
 
 	router.HandleFunc("/user", controllers.CreateAccount).Methods("POST")
+	router.HandleFunc("/user/me", controllers.GetCurrentUser).Methods("GET")
 	router.HandleFunc("/user/login", controllers.Authenticate).Methods("POST")
 
 	router.HandleFunc("/auction", controllers.CreateAuction).Methods("POST")

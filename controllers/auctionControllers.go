@@ -17,14 +17,15 @@ var CreateAuction = func(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(auction)
 
 	if err != nil {
-		u.RespondWithError(w, u.Message(400, "Error while decoding request body"), http.StatusBadRequest)
+		u.RespondWithError(w, "Error while decoding request body", http.StatusBadRequest)
 		return
 	}
 
 	auction.AccountID = userId
 
 	if resp, ok := auction.Validate(); !ok {
-		u.RespondWithMessage(w, resp)
+		u.RespondWithError(w, resp, http.StatusBadRequest)
+		return
 	}
 
 	u.Respond(w, auction.Create())

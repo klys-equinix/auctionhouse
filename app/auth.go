@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"encoding/json"
 	"github.com/dgrijalva/jwt-go"
 	"golang-poc/dao"
 	u "golang-poc/utils"
@@ -42,7 +43,7 @@ var JwtAuthentication = func(next http.Handler) http.Handler {
 			}
 
 			tokenString = tokenHeaderParts[1]
-		} else if len(bearerPathVar) != 0 {
+		} else if len(bearerPathVar) > 1 {
 			tokenString = bearerPathVar[1]
 		} else {
 			respondTokenMissing(&response, w)
@@ -68,14 +69,14 @@ var JwtAuthentication = func(next http.Handler) http.Handler {
 
 func respondInvalidToken(response *map[string]interface{}, w http.ResponseWriter) {
 	*response = u.Message(401, "Invalid/Malformed auth token. Is is in format Authorization Bearer {token}?")
-	w.WriteHeader(http.StatusForbidden)
 	w.Header().Add("Content-Type", "application/json")
-	u.RespondWithMessage(w, *response)
+	w.WriteHeader(http.StatusForbidden)
+	json.NewEncoder(w).Encode(response)
 }
 
 func respondTokenMissing(response *map[string]interface{}, w http.ResponseWriter) {
 	*response = u.Message(401, "Missing auth token")
-	w.WriteHeader(http.StatusForbidden)
 	w.Header().Add("Content-Type", "application/json")
-	u.RespondWithMessage(w, *response)
+	w.WriteHeader(http.StatusForbidden)
+	json.NewEncoder(w).Encode(response)
 }

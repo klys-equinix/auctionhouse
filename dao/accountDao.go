@@ -5,7 +5,6 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/jinzhu/gorm"
 	"golang-poc/dto"
-	u "golang-poc/utils"
 	"golang.org/x/crypto/bcrypt"
 	"os"
 )
@@ -38,58 +37,60 @@ func (account *Account) ValidateUnique() (string, bool) {
 	return "Requirement passed", true
 }
 
-func Create(createAccountDto *dto.CreateAccountDto) (*dto.AccountDto, error) {
+func Create(createAccountDto *dto.CreateAccountDto) (*Account, error) {
 	account := NewAccount(createAccountDto)
 
 	if resp, ok := account.ValidateUnique(); !ok {
 		return nil, errors.New(resp)
 	}
 
-	GetDB().Create(account)
+	err := GetDB().Create(account).Error
+
+	if err != nil {
+		return nil, err
+	}
 
 	account.generateJwtToken()
 
-	accountDto := &dto.AccountDto{Email: account.Email, Token: account.Token}
-	return accountDto, nil
+	return account, nil
 }
 
-func Login(email, password string) map[string]interface{} {
+func Login(email, password string) (*Account, error) {
 
 	account := &Account{}
 	err := GetDB().Table("accounts").Where("email = ?", email).First(account).Error
 
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
-			return u.Message(400, "Email address not found")
+			return nil, errors.New("account not found")
 		}
-		return u.Message(400, "Connection error. Please retry")
+		return nil, err
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(account.Password), []byte(password))
 
 	if err != nil && err == bcrypt.ErrMismatchedHashAndPassword {
-		return u.Message(400, "Invalid login credentials. Please try again")
+		return nil, errors.New("invalid login credentials")
 	}
-
-	account.Password = ""
 
 	account.generateJwtToken()
 
-	resp := u.Message(400, "Logged In")
-	resp["account"] = &dto.AccountDto{Email: account.Email, Token: account.Token}
-	return resp
+	return account, nil
 }
 
-func GetUser(u uint) *Account {
+func GetUser(u uint) (*Account, error) {
 
 	acc := &Account{}
-	GetDB().Table("accounts").Where("id = ?", u).First(acc)
-	if acc.Email == "" {
-		return nil
+	err := GetDB().Table("accounts").Where("id = ?", u).First(acc).Error
+
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, errors.New("account not found")
+		}
+		return nil, err
 	}
 
-	acc.Password = ""
-	return acc
+	return acc, nil
 }
 
 func (account *Account) generateJwtToken() {

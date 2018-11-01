@@ -16,10 +16,10 @@ func RespondWithMessage(w http.ResponseWriter, data map[string]interface{}) {
 	json.NewEncoder(w).Encode(data)
 }
 
-func RespondWithError(w http.ResponseWriter, data map[string]interface{}, code int) {
+func RespondWithError(w http.ResponseWriter, errorMessage string, code int) {
 	w.Header().Add("Content-Type", "application/json")
 	w.WriteHeader(code)
-	json.NewEncoder(w).Encode(data)
+	json.NewEncoder(w).Encode(map[string]interface{}{"message": errorMessage})
 }
 
 func Respond(w http.ResponseWriter, data interface{}) {

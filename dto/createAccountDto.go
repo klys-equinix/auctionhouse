@@ -1,7 +1,6 @@
 package dto
 
 import (
-	u "golang-poc/utils"
 	"strings"
 )
 
@@ -10,17 +9,17 @@ type CreateAccountDto struct {
 	Password string `json:"password"`
 }
 
-func (account *CreateAccountDto) Validate() (map[string]interface{}, bool) {
+func (account *CreateAccountDto) Validate() (string, bool) {
 
 	if validateEmail(account.Email) {
-		return u.Message(400, "Email address is required"), false
+		return "Email address is required", false
 	}
 
 	if validatePassword(account.Password) {
-		return u.Message(400, "Password is too short"), false
+		return "Password is too short", false
 	}
 
-	return u.Message(200, "Requirement passed"), true
+	return "Requirement passed", true
 }
 
 func validatePassword(password string) bool {

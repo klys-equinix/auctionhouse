@@ -2,7 +2,6 @@ package dao
 
 import (
 	"github.com/jinzhu/gorm"
-	u "golang-poc/utils"
 	"log"
 )
 
@@ -15,21 +14,21 @@ type Auction struct {
 	AuctionFiles []AuctionFile `json:"auctionFiles"`
 }
 
-func (auction *Auction) Validate() (map[string]interface{}, bool) {
+func (auction *Auction) Validate() (string, bool) {
 
 	if auction.Name == "" {
-		return u.Message(400, "Auction name should be on the payload"), false
+		return "Auction name should be on the payload", false
 	}
 
 	if auction.Description == "" {
-		return u.Message(400, "Description should be on the payload"), false
+		return "Description should be on the payload", false
 	}
 
 	if auction.AccountID == 0 {
-		return u.Message(400, "User is not recognized"), false
+		return "User is not recognized", false
 	}
 
-	return u.Message(200, "success"), true
+	return "", true
 }
 
 func (auction *Auction) Create() *Auction {
