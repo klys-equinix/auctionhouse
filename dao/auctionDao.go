@@ -38,6 +38,11 @@ func (auction *Auction) Create() *Auction {
 	return auction
 }
 
+func (auction *Auction) Start() *Auction {
+
+	return auction
+}
+
 func GetAuction(id uint) *Auction {
 
 	auction := &Auction{}

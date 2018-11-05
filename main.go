@@ -5,6 +5,7 @@ import (
 	"github.com/gorilla/mux"
 	"golang-poc/app"
 	"golang-poc/controllers"
+	e "golang-poc/p2p"
 	"net/http"
 	"os"
 )
@@ -34,6 +35,7 @@ func main() {
 	}
 
 	fmt.Println(port)
+	e.MakeBasicHost(0, false, 0)
 
 	err := http.ListenAndServe(":"+port, router) //Launch the app, visit localhost:8000
 	if err != nil {
