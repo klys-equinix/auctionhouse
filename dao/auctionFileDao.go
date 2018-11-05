@@ -52,19 +52,24 @@ func (auctionFile *AuctionFile) Create(buf *bytes.Buffer) (*AuctionFile, error) 
 	return auctionFile, nil
 }
 
-func GetAuctionFile(id uint) (*os.File, *AuctionFile) {
+func GetAuctionFile(id uint) (*os.File, *AuctionFile, error) {
 
 	auctionFile := &AuctionFile{}
 	err := GetDB().Table("auction_files").Where("id = ?", id).First(auctionFile).Error
+
 	if err != nil {
-		return nil, nil
+		return nil, nil, err
 	}
 
 	filePath := auctionFile.buildFilePath()
 
 	f, err := os.Open(filePath)
 
-	return f, auctionFile
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return f, auctionFile, nil
 }
 
 func (auctionFile *AuctionFile) SaveFile(buf *bytes.Buffer) (bool, error) {

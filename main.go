@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"golang-poc/app"
 	"golang-poc/controllers"
@@ -28,6 +29,10 @@ func main() {
 
 	router.NotFoundHandler = app.NotFoundHandler
 
+	headersOk := handlers.AllowedHeaders([]string{"X-Requested-With"})
+	originsOk := handlers.AllowedOrigins([]string{os.Getenv("ORIGIN_ALLOWED")})
+	methodsOk := handlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS"})
+
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8000" //localhost
@@ -35,7 +40,7 @@ func main() {
 
 	fmt.Println(port)
 
-	err := http.ListenAndServe(":"+port, router) //Launch the app, visit localhost:8000
+	err := http.ListenAndServe(":"+port, handlers.CORS(headersOk, originsOk, methodsOk)(router)) //Launch the app, visit localhost:8000
 	if err != nil {
 		fmt.Print(err)
 	}
