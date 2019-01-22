@@ -30,7 +30,7 @@ var CreateAccount = func(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	u.Respond(w, &dto.AccountDto{Email: resp.Email, Token: resp.Token})
+	u.Respond(w, &dto.AccountDto{Email: resp.Email, Token: resp.Token, ID: resp.ID})
 }
 
 var Authenticate = func(w http.ResponseWriter, r *http.Request) {
@@ -50,5 +50,5 @@ var Authenticate = func(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	u.Respond(w, &dto.AccountDto{Email: resp.Email, Token: resp.Token})
+	u.Respond(w, &dto.AccountDto{Email: resp.Email, Token: resp.Token, ID: resp.ID})
 }
