@@ -17,5 +17,5 @@ var GetCurrentUser = func(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	u.Respond(w, &dto.AccountDto{Email: data.Email})
+	u.Respond(w, &dto.AccountDto{Email: data.Email, ID: data.ID})
 }

@@ -37,7 +37,12 @@ var CreateAuctionFile = func(w http.ResponseWriter, r *http.Request) {
 var GetAuctionFileById = func(w http.ResponseWriter, r *http.Request) {
 	auctionFileId, _ := strconv.ParseUint(u.GetPathVar("fileId", r), 10, 32)
 
-	data, auctionFile := dao.GetAuctionFile(uint(auctionFileId))
+	data, auctionFile, err := dao.GetAuctionFile(uint(auctionFileId))
+
+	if err != nil {
+		u.RespondWithError(w, err.Error(), 400)
+		return
+	}
 
 	fileName := fmt.Sprintf("%s.%s", auctionFile.Name, auctionFile.Extension)
 
