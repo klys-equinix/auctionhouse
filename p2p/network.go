@@ -96,7 +96,9 @@ func readBlocks(rw *bufio.ReadWriter, blockchainChannel chan b.Blockchain) {
 		str, err := rw.ReadString('\n')
 
 		if err != nil {
-			log.Fatal(err)
+			fmt.Printf("%s", err)
+			//log.Fatal(err)
+			return
 		}
 
 		if str == "" {
@@ -124,11 +126,19 @@ func broadcastState(blockchainChannel chan b.Blockchain, rw *bufio.ReadWriter) {
 			select {
 			case newBlockChain := <-blockchainChannel:
 				currentBlockchain = newBlockChain
-				broadcast(rw, marshallBlockchainToBytes(currentBlockchain))
+				err := broadcast(rw, marshallBlockchainToBytes(currentBlockchain))
 				blockchainChannel <- newBlockChain
+				if err != nil {
+					fmt.Printf("%s", err)
+					return
+				}
 			default:
 				if len(currentBlockchain.Blocks) > 0 {
-					broadcast(rw, marshallBlockchainToBytes(currentBlockchain))
+					err := broadcast(rw, marshallBlockchainToBytes(currentBlockchain))
+					if err != nil {
+						fmt.Printf("%s", err)
+						return
+					}
 				}
 			}
 
@@ -160,9 +170,10 @@ func marshallBlockchainToBytes(blockchain b.Blockchain) []byte {
 	return bytes
 }
 
-func broadcast(rw *bufio.ReadWriter, bytes []byte) {
+func broadcast(rw *bufio.ReadWriter, bytes []byte) error {
 	mutex.Lock()
 	rw.WriteString(fmt.Sprintf("%s\n", string(bytes)))
-	rw.Flush()
+	err := rw.Flush()
 	mutex.Unlock()
+	return err
 }
