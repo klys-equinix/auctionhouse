@@ -38,7 +38,7 @@ var CreateAuction = func(w http.ResponseWriter, r *http.Request) {
 		fmt.Print(p2pErr)
 	}
 
-	CreateGenesisNode(auctionHost, created)
+	go CreateGenesisNode(auctionHost, created)
 
 	u.Respond(w, created)
 }
@@ -64,4 +64,5 @@ func CreateGenesisNode(h host.Host, auction *dao.Auction) {
 	genesisBlock := b.GenerateGenesisBlock(0, auction.AccountID, time.Now().AddDate(2020, 1, 1).String(), auction.AskingPrice)
 	streamHandler := p2p.GetStreamHandler(genesisBlock)
 	h.SetStreamHandler("/p2p/1.0.0", streamHandler)
+	select {}
 }
