@@ -109,12 +109,12 @@ func readBlocks(rw *bufio.ReadWriter, blockchainChannel chan Blockchain) {
 
 		if str != "\n" {
 			receivedChain := marshallReceivedChain(str)
-			blockchain := <-blockchainChannel
-			if len(receivedChain) > len(blockchain.Blocks) {
-				blockchain.Blocks = receivedChain
-				printBlockchain(blockchain.Blocks)
-				blockchainChannel <- blockchain
+			currentBlockChain := <-blockchainChannel
+			if len(receivedChain) > len(currentBlockChain.Blocks) {
+				currentBlockChain.Blocks = receivedChain
+				printBlockchain(currentBlockChain.Blocks)
 			}
+			blockchainChannel <- currentBlockChain
 		}
 	}
 }
@@ -129,6 +129,7 @@ func broadcastState(blockchainChannel chan Blockchain, rw *bufio.ReadWriter) {
 			case newBlockChain := <-blockchainChannel:
 				currentBlockchain = newBlockChain
 				broadcast(rw, marshallBlockchainToBytes(currentBlockchain))
+				blockchainChannel <- newBlockChain
 			default:
 				if len(currentBlockchain.Blocks) > 0 {
 					broadcast(rw, marshallBlockchainToBytes(currentBlockchain))
