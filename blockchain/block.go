@@ -8,19 +8,19 @@ import (
 )
 
 type Offer struct {
-	BuyerId       int
+	BuyerId       uint
 	OfferedAmount int
 }
 
 type Block struct {
 	Index           int
-	MinimalOffer    int
+	MinimalOffer    uint64
 	Timestamp       string
 	TerminationTime string
 	Hash            string
 	PrevHash        string
 	Offer           Offer
-	SellerId        int
+	SellerId        uint
 }
 
 func IsBlockValid(newBlock, oldBlock Block) bool {
@@ -66,7 +66,7 @@ func GenerateBlock(oldBlock Block, offeredAmount int) Block {
 	return newBlock
 }
 
-func GenerateGenesisBlock(initialOffer int, sellerId int, auctionEnd string) Block {
+func GenerateGenesisBlock(initialOffer int, sellerId uint, auctionEnd string, askingPrice uint64) Block {
 
 	newBlock := Block{}
 	genesisOffer := Offer{OfferedAmount: initialOffer}
@@ -78,6 +78,7 @@ func GenerateGenesisBlock(initialOffer int, sellerId int, auctionEnd string) Blo
 	newBlock.TerminationTime = auctionEnd
 	newBlock.SellerId = sellerId
 	newBlock.Hash = calculateHash(newBlock)
+	newBlock.MinimalOffer = askingPrice
 
 	return newBlock
 }

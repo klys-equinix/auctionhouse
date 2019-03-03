@@ -9,9 +9,11 @@ import (
 	b "golang-poc/blockchain"
 	"gx/ipfs/QmRxk6AUaGaKCfzS1xSNRojiAPd7h2ih8GuCdjJBF3Y6GK/go-libp2p"
 	"gx/ipfs/QmTW4SdgBWq9GjsBsHeUx8WuGxzhgzAf88UMH2w62PC8yK/go-libp2p-crypto"
-	ma "gx/ipfs/QmTZBfrPJmjWsCvHEtX5FE6KimVJhsJg5sBbqEFYf4UZtL/go-multiaddr"
 	"gx/ipfs/QmY3ArotKMKaL7YGfbQfyDrib6RVraLqZYWXZvVgZktBxp/go-libp2p-net"
 	"gx/ipfs/QmYrWiWM4qtrnCeT3R14jY3ZZyirDNJgwK57q4qFYePgbd/go-libp2p-host"
+	//"gx/ipfs/QmYVXrKrKHDC9FobgmcmshCDyWwdrfwfanNQN4oxJ9Fk3h/go-libp2p-peer"
+	//"gx/ipfs/QmaCTz9RkrU13bm9kMB54f7atgqM4qkjDZpRwRoJiWXEqs/go-libp2p-peerstore"
+	ma "gx/ipfs/QmTZBfrPJmjWsCvHEtX5FE6KimVJhsJg5sBbqEFYf4UZtL/go-multiaddr"
 	"io"
 	"log"
 	mrand "math/rand"
@@ -61,12 +63,6 @@ func MakeBasicHost(listenPort int, secio bool, randseed int64) (host.Host, error
 	return basicHost, nil
 }
 
-func CreateGenesisNode(s net.Stream, genesisBlock b.Block) {
-	rw := bufio.NewReadWriter(bufio.NewReader(s), bufio.NewWriter(s))
-
-	go handleStream(rw, genesisBlock)
-}
-
 func createReaderWithRandomNumbers(randseed int64) io.Reader {
 	var r io.Reader
 	// If the seed is zero, use real cryptographic randomness. Otherwise, use a
@@ -80,7 +76,7 @@ func createReaderWithRandomNumbers(randseed int64) io.Reader {
 	return r
 }
 
-func handleStream(rw *bufio.ReadWriter, genesisBlock b.Block) {
+func readBlocks(rw *bufio.ReadWriter, genesisBlock b.Block) {
 	blocks := append(make([]b.Block, 0), genesisBlock)
 	blockchain := Blockchain{Blocks: blocks}
 	blockchainChannel := make(chan Blockchain)
@@ -108,6 +104,13 @@ func handleStream(rw *bufio.ReadWriter, genesisBlock b.Block) {
 			}
 			mutex.Unlock()
 		}
+	}
+}
+
+func GetStreamHandler(genesisBlock b.Block) func(s net.Stream) {
+	return func(s net.Stream) {
+		rw := bufio.NewReadWriter(bufio.NewReader(s), bufio.NewWriter(s))
+		go readBlocks(rw, genesisBlock)
 	}
 }
 
