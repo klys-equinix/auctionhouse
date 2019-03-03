@@ -40,6 +40,10 @@ func IsBlockValid(newBlock, oldBlock Block) bool {
 		return false
 	}
 
+	if newBlock.TerminationTime == "" {
+		return false
+	}
+
 	return true
 }
 

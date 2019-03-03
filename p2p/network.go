@@ -25,10 +25,6 @@ import (
 
 var mutex = &sync.Mutex{}
 
-type Blockchain struct {
-	Blocks []b.Block
-}
-
 func MakeBasicHost(listenPort int, secio bool, randseed int64) (host.Host, error) {
 
 	var r io.Reader
@@ -84,8 +80,8 @@ func MakeBasicHost(listenPort int, secio bool, randseed int64) (host.Host, error
 
 func GetStreamHandler(genesisBlock b.Block) func(s net.Stream) {
 	blocks := append(make([]b.Block, 0), genesisBlock)
-	blockchain := Blockchain{Blocks: blocks}
-	blockchainChannel := make(chan Blockchain, 2)
+	blockchain := b.Blockchain{Blocks: blocks}
+	blockchainChannel := make(chan b.Blockchain, 2)
 	blockchainChannel <- blockchain
 
 	return func(s net.Stream) {
@@ -95,7 +91,7 @@ func GetStreamHandler(genesisBlock b.Block) func(s net.Stream) {
 	}
 }
 
-func readBlocks(rw *bufio.ReadWriter, blockchainChannel chan Blockchain) {
+func readBlocks(rw *bufio.ReadWriter, blockchainChannel chan b.Blockchain) {
 	for {
 		str, err := rw.ReadString('\n')
 
@@ -110,8 +106,8 @@ func readBlocks(rw *bufio.ReadWriter, blockchainChannel chan Blockchain) {
 		if str != "\n" {
 			receivedChain := marshallReceivedChain(str)
 			currentBlockChain := <-blockchainChannel
-			if len(receivedChain) > len(currentBlockChain.Blocks) {
-				currentBlockChain.Blocks = receivedChain
+			if len(receivedChain.Blocks) > len(currentBlockChain.Blocks) && receivedChain.IsBlockchainValid() {
+				currentBlockChain = receivedChain
 				printBlockchain(currentBlockChain.Blocks)
 			}
 			blockchainChannel <- currentBlockChain
@@ -119,8 +115,8 @@ func readBlocks(rw *bufio.ReadWriter, blockchainChannel chan Blockchain) {
 	}
 }
 
-func broadcastState(blockchainChannel chan Blockchain, rw *bufio.ReadWriter) {
-	currentBlockchain := Blockchain{Blocks: make([]b.Block, 0)}
+func broadcastState(blockchainChannel chan b.Blockchain, rw *bufio.ReadWriter) {
+	currentBlockchain := b.Blockchain{Blocks: make([]b.Block, 0)}
 	go func() {
 		for {
 			time.Sleep(5 * time.Second)
@@ -148,15 +144,15 @@ func printBlockchain(Blockchain []b.Block) {
 	fmt.Printf("\x1b[32m%s\x1b[0m> ", string(bytes))
 }
 
-func marshallReceivedChain(str string) []b.Block {
+func marshallReceivedChain(str string) b.Blockchain {
 	receivedChain := make([]b.Block, 0)
 	if err := json.Unmarshal([]byte(str), &receivedChain); err != nil {
 		log.Fatal(err)
 	}
-	return receivedChain
+	return b.Blockchain{Blocks: receivedChain}
 }
 
-func marshallBlockchainToBytes(blockchain Blockchain) []byte {
+func marshallBlockchainToBytes(blockchain b.Blockchain) []byte {
 	bytes, err := json.Marshal(blockchain.Blocks)
 	if err != nil {
 		log.Println(err)
