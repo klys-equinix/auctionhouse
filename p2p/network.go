@@ -7,10 +7,12 @@ import (
 	"encoding/json"
 	"fmt"
 	b "golang-poc/blockchain"
+	"golang-poc/dao"
 	"gx/ipfs/QmRxk6AUaGaKCfzS1xSNRojiAPd7h2ih8GuCdjJBF3Y6GK/go-libp2p"
 	"gx/ipfs/QmTW4SdgBWq9GjsBsHeUx8WuGxzhgzAf88UMH2w62PC8yK/go-libp2p-crypto"
 	"gx/ipfs/QmY3ArotKMKaL7YGfbQfyDrib6RVraLqZYWXZvVgZktBxp/go-libp2p-net"
 	"gx/ipfs/QmYrWiWM4qtrnCeT3R14jY3ZZyirDNJgwK57q4qFYePgbd/go-libp2p-host"
+	"os"
 	"strings"
 
 	//"gx/ipfs/QmYVXrKrKHDC9FobgmcmshCDyWwdrfwfanNQN4oxJ9Fk3h/go-libp2p-peer"
@@ -25,7 +27,7 @@ import (
 
 var mutex = &sync.Mutex{}
 
-func MakeBasicHost(listenPort int, secio bool, randseed int64) (host.Host, error) {
+func MakeBasicHost(listenPort int, secio bool, randseed int64) (host.Host, string, error) {
 
 	var r io.Reader
 	if randseed == 0 {
@@ -38,20 +40,20 @@ func MakeBasicHost(listenPort int, secio bool, randseed int64) (host.Host, error
 	// to obtain a valid host ID.
 	priv, _, err := crypto.GenerateKeyPairWithReader(crypto.RSA, 2048, r)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
 	log.Printf("Chosen port", listenPort)
 
 	opts := []libp2p.Option{
-		libp2p.ListenAddrStrings(fmt.Sprintf("/ip4/127.0.0.1/tcp/%d", listenPort)),
+		libp2p.ListenAddrStrings(fmt.Sprintf("/ip4/%s/tcp/%d", os.Getenv("ip"), listenPort)),
 		libp2p.Identity(priv),
 	}
 
 	basicHost, err := libp2p.New(context.Background(), opts...)
 
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
 	// Build host multiaddress
@@ -75,13 +77,53 @@ func MakeBasicHost(listenPort int, secio bool, randseed int64) (host.Host, error
 	} else {
 		log.Printf("\"go run main.go -l %d -d %s\" ", listenPort+1, fullAddr)
 	}
+	return basicHost, fullAddr.String(), nil
+}
+
+func RebootHost(auction dao.Auction) (host.Host, error) {
+	r := rand.Reader
+
+	// Generate a key pair for this host. We will use it
+	// to obtain a valid host ID.
+	priv, _, err := crypto.GenerateKeyPairWithReader(crypto.RSA, 2048, r)
+	if err != nil {
+		return nil, err
+	}
+
+	s := strings.Split(auction.AuctionHost, "/ipfs/")
+	opts := []libp2p.Option{
+		libp2p.ListenAddrStrings(s[0]),
+		libp2p.Identity(priv),
+	}
+
+	basicHost, err := libp2p.New(context.Background(), opts...)
+
+	if err != nil {
+		return nil, err
+	}
+
+	hostAddr, _ := ma.NewMultiaddr(fmt.Sprintf("/ipfs/%s", s[1]))
+
+	// Now we can build a full multiaddress to reach this host
+	// by encapsulating both addresses:
+	addrs := basicHost.Addrs()
+	var addr ma.Multiaddr
+	// select the address starting with "ip4"
+	for _, i := range addrs {
+		if strings.HasPrefix(i.String(), "/ip4") {
+			addr = i
+			break
+		}
+	}
+	fullAddr := addr.Encapsulate(hostAddr)
+	log.Printf("I am %s\n", fullAddr)
 	return basicHost, nil
 }
 
 func GetStreamHandler(genesisBlock b.Block) func(s net.Stream) {
 	blocks := append(make([]b.Block, 0), genesisBlock)
 	blockchain := b.Blockchain{Blocks: blocks}
-	blockchainChannel := make(chan b.Blockchain, 2)
+	blockchainChannel := make(chan b.Blockchain, 1)
 	blockchainChannel <- blockchain
 
 	return func(s net.Stream) {

@@ -9,8 +9,8 @@ import (
 	u "golang-poc/utils"
 	"gx/ipfs/QmYrWiWM4qtrnCeT3R14jY3ZZyirDNJgwK57q4qFYePgbd/go-libp2p-host"
 	"net/http"
+	"os"
 	"strconv"
-	"time"
 )
 
 var CreateAuction = func(w http.ResponseWriter, r *http.Request) {
@@ -32,11 +32,16 @@ var CreateAuction = func(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	created := auction.Create()
-	auctionHost, p2pErr := p2p.MakeBasicHost(3000, false, 0)
+	p2pPort, _ := strconv.Atoi(os.Getenv("p2p_port"))
+
+	auctionHost, addr, p2pErr := p2p.MakeBasicHost(p2pPort, false, 0)
 	if p2pErr != nil {
 		fmt.Print(p2pErr)
 	}
+
+	auction.AuctionHost = addr
+
+	created := auction.Create()
 
 	go CreateGenesisNode(auctionHost, created)
 
@@ -61,7 +66,7 @@ var GetAuctionById = func(w http.ResponseWriter, r *http.Request) {
 }
 
 func CreateGenesisNode(h host.Host, auction *dao.Auction) {
-	genesisBlock := b.GenerateGenesisBlock(0, auction.AccountID, time.Now().AddDate(2020, 1, 1).String(), auction.AskingPrice)
+	genesisBlock := b.GenerateGenesisBlock(0, auction.AccountID, auction.TerminationTime.String(), auction.AskingPrice)
 	streamHandler := p2p.GetStreamHandler(genesisBlock)
 	h.SetStreamHandler("/p2p/1.0.0", streamHandler)
 	select {}
