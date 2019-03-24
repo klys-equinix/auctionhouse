@@ -3,15 +3,18 @@ package dao
 import (
 	"github.com/jinzhu/gorm"
 	"log"
+	"time"
 )
 
 type Auction struct {
 	CommonModelFields
-	Name         string        `json:"name"`
-	Description  string        `json:"description"`
-	AskingPrice  uint64        `json:"askingPrice"`
-	AccountID    uint          `json:"accountId"`
-	AuctionFiles []AuctionFile `json:"auctionFiles"`
+	Name            string        `json:"name"`
+	Description     string        `json:"description"`
+	AskingPrice     uint64        `json:"askingPrice"`
+	AccountID       uint          `json:"accountId"`
+	AuctionFiles    []AuctionFile `json:"auctionFiles"`
+	TerminationTime time.Time     `json:"terminationTime"`
+	AuctionHost     string        `json:"auctionHost"`
 }
 
 func (auction *Auction) Validate() (string, bool) {
@@ -34,6 +37,11 @@ func (auction *Auction) Validate() (string, bool) {
 func (auction *Auction) Create() *Auction {
 
 	GetDB().Create(auction)
+
+	return auction
+}
+
+func (auction *Auction) Start() *Auction {
 
 	return auction
 }

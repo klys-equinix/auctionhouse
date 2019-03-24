@@ -6,6 +6,8 @@ import (
 	"github.com/gorilla/mux"
 	"golang-poc/app"
 	"golang-poc/controllers"
+	"golang-poc/dao"
+	"golang-poc/p2p"
 	"net/http"
 	"os"
 )
@@ -38,7 +40,9 @@ func main() {
 		port = "8000" //localhost
 	}
 
-	fmt.Println(port)
+	for _, auction := range dao.GetAllAuctions(0, "") {
+		p2p.RebootHost(*auction)
+	}
 
 	err := http.ListenAndServe(":"+port, handlers.CORS(headersOk, originsOk, methodsOk)(router)) //Launch the app, visit localhost:8000
 	if err != nil {
