@@ -31,7 +31,7 @@ func init() {
 	}
 
 	db = conn
-	db.Model(&Account{}).Related(&Auction{})
+	db.Model(&Auction{}).Related(&Account{})
 	db.Model(&Auction{}).Related(&AuctionFile{})
 	db.AutoMigrate(&Account{}, &Auction{}, &AuctionFile{})
 	db.Model(&Auction{}).AddForeignKey("account_id", "accounts(id)", "CASCADE", "CASCADE")

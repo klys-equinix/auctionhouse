@@ -25,7 +25,7 @@ var CreateAuction = func(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auction.AccountID = userId
+	auction.Account.ID = userId
 
 	if resp, ok := auction.Validate(); !ok {
 		u.RespondWithError(w, resp, http.StatusBadRequest)
@@ -66,7 +66,7 @@ var GetAuctionById = func(w http.ResponseWriter, r *http.Request) {
 }
 
 func CreateGenesisNode(h host.Host, auction *dao.Auction) {
-	genesisBlock := b.GenerateGenesisBlock(0, auction.AccountID, auction.TerminationTime.String(), auction.AskingPrice)
+	genesisBlock := b.GenerateGenesisBlock(0, auction.Account.ID, auction.TerminationTime.String(), auction.AskingPrice)
 	streamHandler := p2p.GetStreamHandler(genesisBlock)
 	h.SetStreamHandler("/p2p/1.0.0", streamHandler)
 	select {}

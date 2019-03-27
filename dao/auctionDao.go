@@ -11,7 +11,8 @@ type Auction struct {
 	Name            string        `json:"name"`
 	Description     string        `json:"description"`
 	AskingPrice     uint64        `json:"askingPrice"`
-	AccountID       uint          `json:"accountId"`
+	AccountID       uint64        `json:"-"`
+	Account         Account       `json:"owner"`
 	AuctionFiles    []AuctionFile `json:"auctionFiles"`
 	TerminationTime time.Time     `json:"terminationTime"`
 	AuctionHost     string        `json:"auctionHost"`
@@ -27,7 +28,7 @@ func (auction *Auction) Validate() (string, bool) {
 		return "Description should be on the payload", false
 	}
 
-	if auction.AccountID == 0 {
+	if auction.Account.ID == 0 {
 		return "User is not recognized", false
 	}
 
@@ -49,7 +50,7 @@ func (auction *Auction) Start() *Auction {
 func GetAuction(id uint) *Auction {
 
 	auction := &Auction{}
-	err := GetDB().Table("auctions").Preload("AuctionFiles").Where("id = ?", id).First(auction).Error
+	err := GetDB().Table("auctions").Preload("AuctionFiles").Preload("Account").Where("id = ?", id).First(auction).Error
 	if err != nil {
 		return nil
 	}
@@ -63,7 +64,7 @@ func GetAllAuctions(accountId uint64, name string) []*Auction {
 
 	db = buildAuctionQuery(accountId, name, db)
 
-	err := db.Preload("AuctionFiles").Find(&auctions).Error
+	err := db.Preload("AuctionFiles").Preload("Account").Find(&auctions).Error
 
 	if err != nil {
 		log.Println(err)
